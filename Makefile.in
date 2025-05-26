@@ -1,0 +1,251 @@
+# SPDX-License-Identifier: MIT OR Apache-2.0
+
+# This Makefile provides handy tooling for MicroPython code development.
+
+# --- MANDATORY variables:
+
+# SRC_CHECKED should contain the source files which are to be checked
+# on the host.
+# This variable needs to be defined externally.
+SRC_CHECKED ?=
+
+# SRC_COMPILED should contain the source files which are to be compiled and
+# uploaded on the target
+# This variable needs to be defined externally.
+SRC_COMPILED ?=
+
+
+# --- Variables that the user can optionally override
+
+# List of files whcih are uploaded to the target directly.
+SRC_EXTRA ?=
+
+# List of all source files that may be part of check/build/upload rules.
+SRC_ALL ?= $(SRC_CHECKED) $(SRC_COMPILED) $(SRC_EXTRA)
+
+
+# Files in addition to SRC_ALL that are to be included in backups.
+BACKUP_EXTRA ?= Makefile Makefile.in
+
+
+# Determine the TTY on which the target resides
+TARGET_DEVICE ?= /dev/ttyACM0
+
+
+# These temporary directories are created by the 'init' target,
+# their contents are used by the check and upload targets, and
+# thir contents are cleaned by the 'clean' target.
+BUILD_DIR = build
+
+
+# Directory where to find 'pyboard.py' and 'mpy-cross'.
+TOOLS_DIR = tools
+
+# Optimization level wen building with TOOL_MPY
+OPTIMIZATION_LEVEL = 2
+
+# Path to the 'mpy-cross' tool from MicroPython
+TOOL_MPY = $(TOOLS_DIR)/mpy-cross
+
+# Path to the 'pyboard' tool from MicroPython
+TOOL_PYBOARD = $(TOOLS_DIR)/pyboard.py
+
+# Path to the 'pycodestyle' tool.
+TOOL_PYCODESTYLE = pycodestyle
+
+# Path to the 'flake8' tool.
+TOOL_FLAKE8 = flake8
+
+# Path to the 'mypy' tool.
+TOOL_MYPY = mypy
+
+# Path to the 'pylint' tool.
+TOOL_PYLINT = pylint
+
+
+# Directory where temporary output files are stored
+TEMP_DIR = make.tmp
+
+# Directory where upload timestamps are stored
+# (this is not cleaned automatically, since 'clean' does not operate
+# on the target and unneccesary uploads are best avoided).
+UPLOAD_TIMESTAMP_DIR = upload.tmp
+
+
+# --- Implementation details
+
+# Kill built-in rules
+.SUFFIXES :=
+
+./: ;
+
+
+# Phony targets used by this file:
+.PHONY: all \
+backup \
+clean \
+cleanall \
+extra-checks \
+flake8 \
+help \
+init \
+init-dirs \
+init-subdirs \
+init-target \
+mpy \
+mypy \
+pycodestyle \
+pylint \
+static-checks \
+upload
+
+.DEFAULT_GOAL = static-checks
+
+
+# Define extra variables used in rules below
+SRC_DIRS = $(filter-out ./,$(sort $(foreach f,$(SRC_ALL),$(dir $(f)))))
+EXTRA_DIRS = $(filter-out ./,$(sort $(foreach f,$(UPLOAD_EXTRA),$(dir $(f)))))
+
+DIRS_BUILD = $(foreach d,$(SRC_DIRS),$(BUILD_DIR)/$d)
+DIRS_TMP = $(foreach d,$(SRC_DIRS),$(TEMP_DIR)/$d)
+DIRS_UPLOAD = $(foreach d,$(SRC_DIRS),$(UPLOAD_TIMESTAMP_DIR)/$d)
+
+BUILD_UPLOAD = $(SRC_COMPILED:%.py=$(BUILD_DIR)/%.mpy)
+EXTRA_UPLOAD = $(foreach f,$(SRC_EXTRA),$(UPLOAD_TIMESTAMP_DIR)/$(f))
+TIMESTAMPS_UPLOAD = $(foreach f,$(SRC_COMPILED),$(UPLOAD_TIMESTAMP_DIR)/$(f:%.py=%.mpy))
+
+
+help:
+	$(info Pre-defined goals:)
+	$(info )
+	$(info     'init' initializes the folder structure used by this makefile.)
+	$(info     The goal must be made manually: once initially; after each \
+'clean'; and once)
+	$(info     for every source folder added.)
+	$(info )
+	$(info     'init-target' initializes the folder structure on the target \
+device.)
+	$(info     The goal must be made manually: once initially, and every time \
+a new folder)
+	$(info     is required on the target.)
+	$(info )
+	$(info     'clean' removes output files locally. Requires 'init' afterwards.)
+	$(info )
+	$(info     'cleanall' performs 'clean', and additionally cleans the \
+Python and MyPy caches.)
+	$(info )
+	$(info   'static-checks' performs standard host-side code analysis, via\
+sub-targets)
+	$(info    'pycodestyle', 'flake8' and 'mpy'.)
+	$(info )
+	$(info    'extra-checks' performs extra host-side code analysis via 'pylint'.)
+	$(info )
+	$(info    'mpy' builds the code, using the command "$(TOOL_MPY)")
+	$(info )
+	$(info    'upload' uploads the built code to the target, using\
+the command)
+	$(info    "$(TOOL_PYBOARD)")
+	$(info )
+	$(info    'backup' creates a tarball of the source files.)
+	$(info )
+	$(info    'all' is an alias for 'static-checks mpy'.)
+	$(info )
+	$(info    '$(.DEFAULT_GOAL)' is the default goal.)
+	@true
+
+
+static-checks: pycodestyle flake8 mypy
+
+extra-checks: pylint
+
+all: static-checks mpy
+
+pycodestyle: $(TEMP_DIR)/pycodestyle.done
+
+flake8: $(TEMP_DIR)/flake8.done
+
+mypy: $(TEMP_DIR)/mypy.done
+
+pylint: $(TEMP_DIR)/pylint.done
+
+
+clean:
+	rm -rf ./$(TEMP_DIR)/*
+	rm -rf ./$(BUILD_DIR)/*
+
+
+cleanall: clean
+	rm -fr .mypy_cache
+	rm -fr __pycache__
+	$(info Consider 'rm -f $(HOME)/.cache/pylint/*.stats')
+	$(info Consider 'rm -fr $(UPLOAD_TIMESTAMP_DIR)/*')
+
+
+$(TEMP_DIR):
+	mkdir -p $@
+
+$(BUILD_DIR):
+	mkdir -p $@
+
+$(UPLOAD_TIMESTAMP_DIR):
+	mkdir -p $@
+
+
+init-dirs: $(TEMP_DIR) $(BUILD_DIR) $(UPLOAD_TIMESTAMP_DIR)
+
+
+init-subdirs: $(SRC_DIRS) | init-dirs
+	mkdir -p . $(DIRS_BUILD)
+	mkdir -p . $(DIRS_TMP)
+	mkdir -p . $(DIRS_UPLOAD)
+
+
+init: init-dirs init-subdirs
+
+
+init-target: $(SRC_DIRS)
+	$(TOOL_PYBOARD) -f mkdir $(patsubst %,:%,$(sort $^))
+
+
+$(TEMP_DIR)/pycodestyle.done: $(SRC_CHECKED)
+	$(TOOL_PYCODESTYLE) $?
+	@touch $@
+
+
+$(TEMP_DIR)/flake8.done: $(SRC_CHECKED)
+	$(TOOL_FLAKE8) $?
+	@touch $@
+
+
+$(TEMP_DIR)/pylint.done: $(SRC_CHECKED)
+	$(TOOL_PYLINT) $?
+	@touch $@
+
+
+$(TEMP_DIR)/mypy.done: $(SRC_CHECKED)
+	$(TOOL_MYPY) $(SRC_CHECKED)
+	@touch $@
+
+
+$(BUILD_DIR)/backup.tgz: $(SRC_ALL) $(BACKUP_EXTRA)
+	tar -czf $@ $^
+
+backup: $(BUILD_DIR)/backup.tgz
+
+
+$(TIMESTAMPS_UPLOAD): $(UPLOAD_TIMESTAMP_DIR)/%: $(BUILD_DIR)/%
+	$(TOOL_PYBOARD) -d $(TARGET_DEVICE) -f cp $< :$(subst $(BUILD_DIR)/,,$(<))
+	touch $@
+
+$(EXTRA_UPLOAD): $(UPLOAD_TIMESTAMP_DIR)/%: %
+	$(TOOL_PYBOARD) -d $(TARGET_DEVICE) -f cp $< :$(<)
+	touch $@
+
+upload: mpy $(DIRS_UPLOAD) $(TIMESTAMPS_UPLOAD) $(EXTRA_UPLOAD)
+
+
+$(BUILD_UPLOAD): $(BUILD_DIR)/%.mpy: %.py
+	$(TOOL_MPY) -O$(OPTIMIZATION_LEVEL) -o $@ $<
+
+
+mpy: $(BUILD_UPLOAD) $(DIRS_BUILD)
