@@ -1,0 +1,17 @@
+[tool.mypy]
+# Get as close as possible to --strict:
+warn_unused_configs = true
+warn_redundant_casts = true
+disallow_any_generics = true
+disallow_subclassing_any = true
+disallow_untyped_calls = true
+disallow_untyped_defs = false  # allow suppression via 'mypy: ignore[no-untyped-def]'
+disallow_incomplete_defs = false  # allow suppression via 'mypy: ignore[no-untyped-def]'
+check_untyped_defs = true
+disallow_untyped_decorators = true
+warn_unused_ignores = true
+warn_return_any = true
+no_implicit_reexport = true
+strict_equality = true
+extra_checks = true
+
