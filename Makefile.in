@@ -35,41 +35,41 @@ TARGET_DEVICE ?= /dev/ttyACM0
 # These temporary directories are created by the 'init' target,
 # their contents are used by the check and upload targets, and
 # thir contents are cleaned by the 'clean' target.
-BUILD_DIR = build
+BUILD_DIR ?= build
 
 
 # Directory where to find 'pyboard.py' and 'mpy-cross'.
-TOOLS_DIR = tools
+TOOLS_DIR ?= tools
 
 # Optimization level wen building with TOOL_MPY
-OPTIMIZATION_LEVEL = 2
+OPTIMIZATION_LEVEL ?= 2
 
 # Path to the 'mpy-cross' tool from MicroPython
-TOOL_MPY = $(TOOLS_DIR)/mpy-cross
+TOOL_MPY ?= $(TOOLS_DIR)/mpy-cross
 
 # Path to the 'pyboard' tool from MicroPython
-TOOL_PYBOARD = $(TOOLS_DIR)/pyboard.py
+TOOL_PYBOARD ?= $(TOOLS_DIR)/pyboard.py
 
 # Path to the 'pycodestyle' tool.
-TOOL_PYCODESTYLE = pycodestyle
+TOOL_PYCODESTYLE ?= pycodestyle
 
 # Path to the 'flake8' tool.
-TOOL_FLAKE8 = flake8
+TOOL_FLAKE8 ?= flake8
 
 # Path to the 'mypy' tool.
-TOOL_MYPY = mypy
+TOOL_MYPY ?= mypy
 
 # Path to the 'pylint' tool.
-TOOL_PYLINT = pylint
+TOOL_PYLINT ?= pylint
 
 
 # Directory where temporary output files are stored
-TEMP_DIR = make.tmp
+TEMP_DIR ?= make.tmp
 
 # Directory where upload timestamps are stored
 # (this is not cleaned automatically, since 'clean' does not operate
 # on the target and unneccesary uploads are best avoided).
-UPLOAD_TIMESTAMP_DIR = upload.tmp
+UPLOAD_TIMESTAMP_DIR ?= upload.tmp
 
 
 # --- Implementation details
