@@ -59,6 +59,9 @@ TOOL_FLAKE8 ?= flake8
 # Path to the 'mypy' tool.
 TOOL_MYPY ?= mypy
 
+# Extra arguments for the 'mypy' tool
+MYPY_ARGS ?=
+
 # Path to the 'pylint' tool.
 TOOL_PYLINT ?= pylint
 
@@ -223,7 +226,7 @@ $(TEMP_DIR)/pylint.done: $(SRC_CHECKED)
 
 
 $(TEMP_DIR)/mypy.done: $(SRC_CHECKED)
-	$(TOOL_MYPY) $(SRC_CHECKED)
+	$(TOOL_MYPY) $(MYPY_ARGS) $(SRC_CHECKED)
 	@touch $@
 
 
