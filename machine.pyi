@@ -254,7 +254,7 @@ class RTC:
     def __init__(self, id: int = 0) -> None:
         pass
 
-    def datetme(
+    def datetime(
         self, t: Optional[_DatetimeTuple] = None
     ) -> Optional[_DatetimeTuple]:
         return None
