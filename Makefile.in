@@ -41,7 +41,7 @@ BUILD_DIR ?= build
 # Directory where to find 'pyboard.py' and 'mpy-cross'.
 TOOLS_DIR ?= tools
 
-# Optimization level wen building with TOOL_MPY
+# Optimization level when building with TOOL_MPY
 OPTIMIZATION_LEVEL ?= 2
 
 # Path to the 'mpy-cross' tool from MicroPython
