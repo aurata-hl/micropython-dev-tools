@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: MIT OR CC0-1.0
 
 import array
-from typing import Any, Optional
+from typing import Any, Optional, Union
 
 # An object with buffer API
 Buffer = Any
@@ -59,7 +59,7 @@ class FrameBuffer:
         pass
 
     def text(
-            self, s: str, x: int, y: int,
+            self, s: Union[str, bytes], x: int, y: int,
             c: int = 1) -> None:
         pass
 
