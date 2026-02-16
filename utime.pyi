@@ -2,6 +2,8 @@
 
 from typing import Callable
 
+time: Callable[[], int]
+
 ticks_ms: Callable[[], int]
 ticks_us: Callable[[], int]
 
