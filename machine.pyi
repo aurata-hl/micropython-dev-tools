@@ -195,10 +195,18 @@ class UART:
         id: int,
         baudrate: int = 9600,
         bits: int = 8,
-        parity: Optional[bool] = False,
+        parity: Optional[int] = None,
         stop: int = 1,
         tx: Optional[Pin] = None,
-        rx: Optional[Pin] = None
+        rx: Optional[Pin] = None,
+        rts: Optional[Pin] = None,
+        cts: Optional[Pin] = None,
+        txbuf: int = 256,
+        rxbuf: int = 256,
+        timeout: int = 0,
+        timeout_char: int = 1,
+        invert: int = 0,
+        flow: int = 0
     ) -> None:
         pass
 
