@@ -17,7 +17,7 @@ SRC_COMPILED ?=
 
 # --- Variables that the user can optionally override
 
-# List of files whcih are uploaded to the target directly.
+# List of files which are uploaded to the target directly.
 SRC_EXTRA ?=
 
 # List of all source files that may be part of check/build/upload rules.
