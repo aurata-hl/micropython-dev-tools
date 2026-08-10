@@ -179,7 +179,7 @@ clean:
 
 cleanall: clean
 	rm -fr .mypy_cache
-	rm -fr __pycache__
+	rm -fr __pycache__  $(addsuffix __pycache__,$(SRC_DIRS))
 	$(info Consider 'rm -f $(HOME)/.cache/pylint/*.stats')
 	$(info Consider 'rm -fr $(UPLOAD_TIMESTAMP_DIR)/*')
 
